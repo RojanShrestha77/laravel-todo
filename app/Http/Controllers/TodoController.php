@@ -16,6 +16,10 @@ class TodoController extends Controller
     // POST/ todos - create a todo
     public function store(Request $request)
     {
+        $request->validate([
+            'title' => 'required|string|max:255',
+        ]);
+        
         $todo = Todo::create($request->all());
         return $todo;
     }
@@ -27,4 +31,13 @@ class TodoController extends Controller
         $todo->update($request->all());
         return $todo;
     }
+
+    // Delete /todos/{id} - delete a todo
+    public function destroy($id)
+    {
+        $todo = Todo::findOrFail($id);
+        $todo->delete();
+        return response()->json(['message' => 'Todo deleted']);
+    }
+
 }
