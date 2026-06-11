@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Todo;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
 
 class TodoController extends Controller
@@ -17,9 +18,9 @@ class TodoController extends Controller
     {
         try {
             $todo = Todo::findOrFail($id);
-            return response() ->json($todo, 200);
+            return response()->json($todo, 200);
         } catch (ModelNotFoundException $e) {
-            return response() -> json(['message' => 'Todo not found'], 404);
+            return response()->json(['message' => 'Todo not found'], 404);
         }
     } #returns only the todo that matches the id
 
@@ -46,8 +47,8 @@ class TodoController extends Controller
             $todo = Todo::findOrFail($id);
             $todo->update($request->all());
             return response() ->json($todo, 200);
-        }     catch(ModelNotFoundException $e) {
-            return response()->json(['message' => 'Todo not found'], 404)
+        } catch (ModelNotFoundException $e) {
+            return response()->json(['message' => 'Todo not found'], 404);
         }
         
     }
@@ -61,7 +62,7 @@ class TodoController extends Controller
             $todo->delete();
             return response()->json(['message' => 'Todo deleted'], 200);
         } catch (ModelNotFoundException $e) {
-            return response() -> json(['message' => 'Todo not found'], 404)
+            return response()->json(['message' => 'Todo not found'], 404);
         }
     }
 
