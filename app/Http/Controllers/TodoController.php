@@ -10,7 +10,7 @@ class TodoController extends Controller
     // GET / TODOS - GET ALL TODOS
     public function index()
     {
-        return Todo::all();
+        return response()->json(Todo::all(), 200);
     }
 
     // POST/ todos - create a todo
@@ -19,7 +19,7 @@ class TodoController extends Controller
         $request->validate([
             'title' => 'required|string|max:255',
         ]);
-        
+
         $todo = Todo::create($request->all());
         return $todo;
     }
@@ -27,6 +27,11 @@ class TodoController extends Controller
     // PUT /todos/{id} - update a todo
     public function update(Request $request, $id)
     {
+        $request->validate([
+            'title' => 'sometimes|string|max:255',  #sometimes means : Only validate this field if it is present in the request
+            'completed' => 'sometimes|boolean',
+        ]);
+
         $todo = Todo::findOrFail($id);
         $todo->update($request->all());
         return $todo;
@@ -37,7 +42,7 @@ class TodoController extends Controller
     {
         $todo = Todo::findOrFail($id);
         $todo->delete();
-        return response()->json(['message' => 'Todo deleted']);
+        return response()->json(['message' => 'Todo deleted'], 200);
     }
 
 }
