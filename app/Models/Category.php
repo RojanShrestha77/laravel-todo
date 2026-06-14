@@ -6,11 +6,11 @@ use Illuminate\Database\Eloquent\Model;
 
 class Category extends Model
 {
-    protected $fillable = ['title', 'completed', 'category_id'];
+    protected $fillable = ['name', 'color'];
 
-    // a todo belongs to a category
-    public function category()
+    // a category has many todos
+    public function todos()
     {
-        return $this->belongsTo(Category::class);
+        return $this->hasMany(Todo::class);
     }
 }
