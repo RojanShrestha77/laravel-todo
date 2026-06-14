@@ -5,26 +5,44 @@ namespace App\Http\Controllers;
 use App\Models\Todo;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
+use App\Http\Resources\TodoResource;
 
 class TodoController extends Controller
 {
-    // GET / TODOS - GET ALL TODOS
-    public function index()
+    // GET /api/todos - get all todos
+    public function index(Request $request)
     {
-        return response()->json(Todo::all(), 200);
-    }  #returns all the todos
+        $query = Todo::query();
 
+        // filter by completed status
+        // Get/api/todos?completed=true
+        if($request -> has ('completed')) {
+            $query->where('completed', filter_var($request->completed, FILTER_VALIDATE_BOOLEAN));
+        }
+
+        // filter by title search
+        // GET /api/todos?search=laravel
+        if($request->has('search')) {
+            $query->where('title', 'like', '%'. $request->search . '%');
+        }
+
+        
+
+        return TodoResource::collection($query->paginate(5));
+    }
+
+    // GET /api/todos/{id} - get single todo
     public function show($id)
     {
         try {
             $todo = Todo::findOrFail($id);
-            return response()->json($todo, 200);
+            return new TodoResource($todo);
         } catch (ModelNotFoundException $e) {
             return response()->json(['message' => 'Todo not found'], 404);
         }
-    } #returns only the todo that matches the id
+    }
 
-    // POST/ todos - create a todo
+    // POST /api/todos - create a todo
     public function store(Request $request)
     {
         $request->validate([
@@ -32,32 +50,30 @@ class TodoController extends Controller
         ]);
 
         $todo = Todo::create($request->all());
-        return $todo;
+        return new TodoResource($todo);
     }
 
-    // PUT /todos/{id} - update a todo
+    // PUT /api/todos/{id} - update a todo
     public function update(Request $request, $id)
     {
         try {
             $request->validate([
-                'title' => 'sometimes|string|max:255',  #sometimes means : Only validate this field if it is present in the request
+                'title'     => 'sometimes|string|max:255',
                 'completed' => 'sometimes|boolean',
             ]);
-    
+
             $todo = Todo::findOrFail($id);
             $todo->update($request->all());
-            return response() ->json($todo, 200);
+            return new TodoResource($todo);
         } catch (ModelNotFoundException $e) {
             return response()->json(['message' => 'Todo not found'], 404);
         }
-        
     }
 
-    // Delete /todos/{id} - delete a todo
+    // DELETE /api/todos/{id} - delete a todo
     public function destroy($id)
     {
         try {
-
             $todo = Todo::findOrFail($id);
             $todo->delete();
             return response()->json(['message' => 'Todo deleted'], 200);
@@ -65,5 +81,4 @@ class TodoController extends Controller
             return response()->json(['message' => 'Todo not found'], 404);
         }
     }
-
 }
