@@ -4,3 +4,4 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\TodoController;
 
 Route::apiResource('todos', TodoController::class);
+Route::apiResource('categories', CategoryController::class);
