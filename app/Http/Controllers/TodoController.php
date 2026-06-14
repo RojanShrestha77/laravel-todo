@@ -26,6 +26,10 @@ class TodoController extends Controller
             $query->where('title', 'like', '%'. $request->search . '%');
         }
 
+        // sort by created_at : Get/api/todos?sort=arc
+        $sort = $request->get('sort', 'desc');
+        $query->orderBy('created_at', $sort);
+        
         
 
         return TodoResource::collection($query->paginate(5));
