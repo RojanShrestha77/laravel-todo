@@ -12,7 +12,8 @@ class TodoController extends Controller
     // GET /api/todos - get all todos
     public function index(Request $request)
     {
-        $query = Todo::query();
+        // $query = Todo::query();
+        $query = $request->user()->todos();   //only gets todos where user_id = logged in user
 
         // filter by completed status
         // Get/api/todos?completed=true
@@ -36,10 +37,10 @@ class TodoController extends Controller
     }
 
     // GET /api/todos/{id} - get single todo
-    public function show($id)
+    public function show(Request $request, $id)
     {
         try {
-            $todo = Todo::findOrFail($id);
+            $todo = $request->user()->todos()->findOrFail($id);
             return new TodoResource($todo);
         } catch (ModelNotFoundException $e) {
             return response()->json(['message' => 'Todo not found'], 404);
@@ -53,7 +54,8 @@ class TodoController extends Controller
             'title' => 'required|string|max:255',
         ]);
 
-        $todo = Todo::create($request->all());
+        // $todo = Todo::create($request->all());
+        $todo = $request->user()->todos()->create($request->all());
         return new TodoResource($todo);
     }
 
@@ -66,7 +68,8 @@ class TodoController extends Controller
                 'completed' => 'sometimes|boolean',
             ]);
 
-            $todo = Todo::findOrFail($id);
+            // $todo = Todo::findOrFail($id);
+            $todo = $request->user()->todos()->findOrFail($id);    //finds todo by id but only within the users todos
             $todo->update($request->all());
             return new TodoResource($todo);
         } catch (ModelNotFoundException $e) {
@@ -75,10 +78,10 @@ class TodoController extends Controller
     }
 
     // DELETE /api/todos/{id} - delete a todo
-    public function destroy($id)
+    public function destroy(Request $request, $id)
     {
         try {
-            $todo = Todo::findOrFail($id);
+            $todo = $request->user()->todos()->findOrFail($id);
             $todo->delete();
             return response()->json(['message' => 'Todo deleted'], 200);
         } catch (ModelNotFoundException $e) {
