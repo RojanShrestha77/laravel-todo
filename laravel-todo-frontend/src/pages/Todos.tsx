@@ -1,55 +1,56 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../api/axios";
-import { useAuth } from "../context/AuthContext";
 import type { Todo } from "../types";
+import { useAppDispatch, useAppSelector } from "../store/hooks";
+import {
+    fetchTodos,
+    createTodo,
+    updateTodo,
+    deleteTodo,
+    selectTodos,
+} from "../store/slices/todoSlice";
+import { clearCredentials } from "../store/slices/authSlice";
 
 export default function Todos() {
-    const { logout } = useAuth();
+    const dispatch = useAppDispatch();
+    const todos = useAppSelector(selectTodos);
     const navigate = useNavigate();
-    const [todos, setTodos] = useState<Todo[]>([]);
     const [title, setTitle] = useState("");
     const [editingId, setEditingId] = useState<number | null>(null);
     const [editTitle, setEditTitle] = useState("");
 
-    const editTodo = async (id: number) => {
-        if (!editTitle.trim()) return;
-        await api.put(`/todos/${id}`, { title: editTitle });
-        setEditingId(null);
-        setEditTitle("");
-        fetchTodos();
-    };
-
-    const fetchTodos = async () => {
-        const res = await api.get("/todos");
-        setTodos(res.data.data);
-    };
-
     useEffect(() => {
-        fetchTodos();
-    }, []);
+        dispatch(fetchTodos());
+    }, [dispatch]);
 
-    const createTodo = async (e: React.FormEvent) => {
+    const handleCreate = (e: React.FormEvent) => {
         e.preventDefault();
         if (!title.trim()) return;
-        await api.post("/todos", { title });
+        dispatch(createTodo(title));
         setTitle("");
-        fetchTodos();
     };
 
-    const toggleTodo = async (todo: Todo) => {
-        await api.put(`/todos/${todo.id}`, { completed: !todo.completed });
-        fetchTodos();
+    const handleToggle = (todo: Todo) => {
+        dispatch(updateTodo({ ...todo, completed: !todo.completed }));
     };
 
-    const deleteTodo = async (id: number) => {
-        await api.delete(`/todos/${id}`);
-        fetchTodos();
+    const handleEdit = (id: number) => {
+        if (!editTitle.trim()) return;
+        const todo = todos.find((t) => t.id === id);
+        if (!todo) return;
+        dispatch(updateTodo({ ...todo, title: editTitle }));
+        setEditingId(null);
+        setEditTitle("");
+    };
+
+    const handleDelete = (id: number) => {
+        dispatch(deleteTodo(id));
     };
 
     const handleLogout = async () => {
         await api.post("/logout");
-        logout();
+        dispatch(clearCredentials());
         navigate("/login");
     };
 
@@ -91,7 +92,7 @@ export default function Todos() {
 
                 {/* Add todo form */}
                 <form
-                    onSubmit={createTodo}
+                    onSubmit={handleCreate}
                     style={{
                         display: "flex",
                         gap: "10px",
@@ -117,7 +118,7 @@ export default function Todos() {
                         gap: "24px",
                     }}
                 >
-                    {/* Not Completed */}
+                    {/* Pending */}
                     <div>
                         <h3
                             style={{
@@ -167,7 +168,18 @@ export default function Todos() {
                                     }}
                                 >
                                     {editingId === todo.id ? (
-                                        <form onSubmit={(e) => { e.preventDefault(); editTodo(todo.id); }} style={{ display: "flex", flexDirection: "column", gap: "8px", flex: 1 }}>
+                                        <form
+                                            onSubmit={(e) => {
+                                                e.preventDefault();
+                                                handleEdit(todo.id);
+                                            }}
+                                            style={{
+                                                display: "flex",
+                                                flexDirection: "column",
+                                                gap: "8px",
+                                                flex: 1,
+                                            }}
+                                        >
                                             <input
                                                 type="text"
                                                 value={editTitle}
@@ -176,12 +188,23 @@ export default function Todos() {
                                                 }
                                                 autoFocus
                                             />
-                                            <div style={{ display: "flex", gap: "8px" }}>
-                                                <button type="submit">Save</button>
+                                            <div
+                                                style={{
+                                                    display: "flex",
+                                                    gap: "8px",
+                                                }}
+                                            >
+                                                <button type="submit">
+                                                    Save
+                                                </button>
                                                 <button
                                                     type="button"
-                                                    onClick={() => setEditingId(null)}
-                                                    style={{ background: "#9ca3af" }}
+                                                    onClick={() =>
+                                                        setEditingId(null)
+                                                    }
+                                                    style={{
+                                                        background: "#9ca3af",
+                                                    }}
                                                 >
                                                     Cancel
                                                 </button>
@@ -189,41 +212,47 @@ export default function Todos() {
                                         </form>
                                     ) : (
                                         <span
-                                            onClick={() => toggleTodo(todo)}
+                                            onClick={() => handleToggle(todo)}
                                             style={{
                                                 cursor: "pointer",
                                                 flex: 1,
                                             }}
-                                            title="Click to toggle"
+                                            title="Click to mark as completed"
                                         >
                                             {todo.title}
                                         </span>
                                     )}
-                                    <button
-                                        onClick={() => {
-                                            setEditingId(todo.id);
-                                            setEditTitle(todo.title);
-                                        }}
-                                        style={{
-                                            background: "#6366f1",
-                                            fontSize: "12px",
-                                            padding: "4px 10px",
-                                            marginLeft: "10px",
-                                        }}
-                                    >
-                                        Edit
-                                    </button>
-                                    <button
-                                        onClick={() => deleteTodo(todo.id)}
-                                        style={{
-                                            background: "#ef4444",
-                                            fontSize: "12px",
-                                            padding: "4px 10px",
-                                            marginLeft: "10px",
-                                        }}
-                                    >
-                                        Delete
-                                    </button>
+                                    {editingId !== todo.id && (
+                                        <>
+                                            <button
+                                                onClick={() => {
+                                                    setEditingId(todo.id);
+                                                    setEditTitle(todo.title);
+                                                }}
+                                                style={{
+                                                    background: "#6366f1",
+                                                    fontSize: "12px",
+                                                    padding: "4px 10px",
+                                                    marginLeft: "10px",
+                                                }}
+                                            >
+                                                Edit
+                                            </button>
+                                            <button
+                                                onClick={() =>
+                                                    handleDelete(todo.id)
+                                                }
+                                                style={{
+                                                    background: "#ef4444",
+                                                    fontSize: "12px",
+                                                    padding: "4px 10px",
+                                                    marginLeft: "10px",
+                                                }}
+                                            >
+                                                Delete
+                                            </button>
+                                        </>
+                                    )}
                                 </div>
                             ))}
                         </div>
@@ -279,7 +308,7 @@ export default function Todos() {
                                     }}
                                 >
                                     <span
-                                        onClick={() => toggleTodo(todo)}
+                                        onClick={() => handleToggle(todo)}
                                         style={{
                                             cursor: "pointer",
                                             flex: 1,
@@ -291,7 +320,7 @@ export default function Todos() {
                                         {todo.title}
                                     </span>
                                     <button
-                                        onClick={() => deleteTodo(todo.id)}
+                                        onClick={() => handleDelete(todo.id)}
                                         style={{
                                             background: "#ef4444",
                                             fontSize: "12px",

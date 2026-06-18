@@ -6,34 +6,42 @@ use App\Models\Todo;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
 use App\Http\Resources\TodoResource;
+use Illuminate\Support\Facades\Cache;
 
 class TodoController extends Controller
 {
+    private function clearTodoCache(int $userId): void
+    {
+        Cache::tags(["todos.user.{$userId}"])->flush();
+    }
     // GET /api/todos - get all todos
     public function index(Request $request)
     {
-        // $query = Todo::query();
-        $query = $request->user()->todos();   //only gets todos where user_id = logged in user
-
-        // filter by completed status
-        // Get/api/todos?completed=true
-        if($request -> has ('completed')) {
-            $query->where('completed', filter_var($request->completed, FILTER_VALIDATE_BOOLEAN));
-        }
-
-        // filter by title search
-        // GET /api/todos?search=laravel
-        if($request->has('search')) {
-            $query->where('title', 'like', '%'. $request->search . '%');
-        }
-
-        // sort by created_at : Get/api/todos?sort=arc
+        $userId = $request->user()->id;
+        $page = $request->get('page', 1);
         $sort = $request->get('sort', 'desc');
-        $query->orderBy('created_at', $sort);
-        
-        
+        $search = $request->get('search', '');
+        $completed = $request->get('completed', '');
 
-        return TodoResource::collection($query->paginate(5));
+        // unique cache key per user + filters
+        $cacheKey = "todos.user.{$userId}.page.{$page}.sort.{$sort}.search.{$search}.completed.{$completed}";
+
+        $todos = Cache::tags(["todos.user.{$userId}"])->remember($cacheKey, now()->addMinutes(5), function () use($request) {
+            $query = $request->user()->todos();
+
+            if($request->has('completed')) {
+                $query->where('completed', filter_var($request->completed, FILTER_VALIDATE_BOOLEAN));
+            }
+
+            if($request->has('search')) {
+                $query->where('title', 'like', '%'.$request->search. '%');
+            }
+
+            $query->orderBy('created_at', $request->get('sort', 'desc'));
+
+            return $query->paginate(5);
+        });
+        return TodoResource::collection($todos);
     }
 
     // GET /api/todos/{id} - get single todo
@@ -56,6 +64,7 @@ class TodoController extends Controller
 
         // $todo = Todo::create($request->all());
         $todo = $request->user()->todos()->create($request->all());
+        $this->clearTodoCache($request->user()->id);
         return new TodoResource($todo);
     }
 
@@ -71,6 +80,7 @@ class TodoController extends Controller
             // $todo = Todo::findOrFail($id);
             $todo = $request->user()->todos()->findOrFail($id);    //finds todo by id but only within the users todos
             $todo->update($request->all());
+            $this->clearTodoCache($request->user()->id);
             return new TodoResource($todo);
         } catch (ModelNotFoundException $e) {
             return response()->json(['message' => 'Todo not found'], 404);
@@ -83,6 +93,7 @@ class TodoController extends Controller
         try {
             $todo = $request->user()->todos()->findOrFail($id);
             $todo->delete();
+            $this->clearTodoCache($request->user()->id); 
             return response()->json(['message' => 'Todo deleted'], 200);
         } catch (ModelNotFoundException $e) {
             return response()->json(['message' => 'Todo not found'], 404);
