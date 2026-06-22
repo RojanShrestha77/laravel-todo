@@ -166,7 +166,7 @@ export default function CommentSection({ post }: Props) {
                             borderRadius: "6px",
                             border: "1px solid #ddd",
                             fontSize: "13px",
-                            fontFamily: "inheirt",
+                            fontFamily: "inherit",
                             resize: "vertical",
                         }}
                     />

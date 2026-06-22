@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;  //this brings in laravels auth facade a built in helper for authentication tasks. checks user exist withthis email, and does the password match with teh has soterd in the database. Returns true or false.
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
@@ -25,7 +25,7 @@ class AuthController extends Controller
         $user = User::create([
             'name'     => $request->name,
             'email'    => $request->email,
-            'password' => bcrypt($request->password),
+            'password' => $request->password,
         ]);
 
         $token = $user->createToken('auth_token')->plainTextToken;
@@ -45,7 +45,7 @@ class AuthController extends Controller
 
         $user = User::where('email', $request->email)->first();
 
-        if(! $user || ! Auth::attempt($request->only('email', 'password'))) {
+        if (!$user || !Hash::check($request->password, $user->password)) {
             throw ValidationException::withMessages([
                 'email' => ['The provided credentials are incorrect.'],
             ]);

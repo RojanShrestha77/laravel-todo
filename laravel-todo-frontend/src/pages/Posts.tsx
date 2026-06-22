@@ -50,7 +50,8 @@ export default function Posts() {
         } catch {
             //token already invalid, ignore
         }
-        (dispatch(clearCredentials()), navigate("/login"));
+        dispatch(clearCredentials());
+        navigate("/login");
     };
 
     return (
@@ -72,18 +73,22 @@ export default function Posts() {
                     }}
                 >
                     <h1 style={{ fontSize: "28px", fontWeight: 700 }}>Blog</h1>
-                    {token && (
-                        <button
-                            onClick={handleLogout}
-                            style={{
-                                background: "#ef4444",
-                                fontSize: "14px",
-                                padding: "6px 14px",
-                            }}
-                        >
-                            Logout
-                        </button>
-                    )}
+                    <div style={{ display: "flex", gap: "10px" }}>
+                        {token ? (
+                            <button onClick={handleLogout} style={{ background: "#ef4444", fontSize: "14px", padding: "6px 14px" }}>
+                                Logout
+                            </button>
+                        ) : (
+                            <>
+                                <button onClick={() => navigate("/login")} style={{ background: "#6366f1", fontSize: "14px", padding: "6px 14px" }}>
+                                    Login
+                                </button>
+                                <button onClick={() => navigate("/register")} style={{ background: "#22c55e", fontSize: "14px", padding: "6px 14px" }}>
+                                    Register
+                                </button>
+                            </>
+                        )}
+                    </div>
                 </div>
 
                 {/* create form only shown when logged in */}
