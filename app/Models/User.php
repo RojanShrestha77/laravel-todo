@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Post;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -32,8 +33,8 @@ class User extends Authenticatable
         ];
     }
 
-    public function todos()
+    public function posts()
     {
-        return $this->hasMany(Todo::class);
+        return $this->hasMany(Post::class);
     }
 }

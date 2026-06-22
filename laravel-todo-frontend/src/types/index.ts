@@ -4,15 +4,11 @@ export interface User {
   email: string;
 }
 
-export interface Todo {
+export interface Post {
   id: number;
   title: string;
-  completed: boolean;
-  category_id: number | null;
-}
-
-export interface Category {
-  id: number;
-  name: string;
-  color: string;
+  slug: string;
+  body: string;
+  author: string;
+  created_at: string;
 }

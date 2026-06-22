@@ -7,6 +7,10 @@ use Illuminate\Database\Eloquent\Model;
 class Todo extends Model
 {
     protected $fillable = ['title', 'completed', 'category_id', 'user_id'];
+    
+    protected $casts =[
+        'completed' => 'boolean', 
+    ];
 
     // a todo belongs to a category
     public function category()
