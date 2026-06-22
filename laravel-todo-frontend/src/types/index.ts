@@ -12,3 +12,12 @@ export interface Post {
   author: string;
   created_at: string;
 }
+
+export interface Comment {
+  id: number;
+  body: string;
+  is_private: boolean;
+  author: string;
+  user_id: number;
+  created_at: string;
+}

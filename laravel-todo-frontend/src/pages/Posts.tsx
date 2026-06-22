@@ -10,6 +10,7 @@ import {
 } from "../store/slices/postSlice";
 import { useEffect, useState } from "react";
 import api from "../api/axios";
+import CommentSection from "../components/CommentSection";
 
 export default function Posts() {
     const dispatch = useAppDispatch();
@@ -266,6 +267,7 @@ export default function Posts() {
                                     >
                                         {post.body}
                                     </p>
+                                    <CommentSection post={post} />
                                 </>
                             )}
                         </div>

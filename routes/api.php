@@ -1,17 +1,10 @@
-<?php
-use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\PostController;
-use App\Http\Controllers\AuthController;
+use App\Http\Controllers\CommentController;
 
-Route::post('/register', [AuthController::class, 'register']);
-Route::post('/login',    [AuthController::class, 'login']);
+// public — fetch comments for a post
+Route::get('/posts/{postId}/comments', [CommentController::class, 'index']);
 
-Route::get('/posts',        [PostController::class, 'index']);
-Route::get('/posts/{slug}', [PostController::class, 'show']);
-
+// auth required — create and delete
 Route::middleware('auth:sanctum')->group(function () {
-    Route::post('/logout',       [AuthController::class, 'logout']);
-    Route::post('/posts',        [PostController::class, 'store']);
-    Route::put('/posts/{id}',    [PostController::class, 'update']);
-    Route::delete('/posts/{id}', [PostController::class, 'destroy']);
-});  // <-- semicolon was missing
+    Route::post('/posts/{postId}/comments', [CommentController::class, 'store']);
+    Route::delete('/comments/{id}',         [CommentController::class, 'destroy']);
+});
