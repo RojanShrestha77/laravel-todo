@@ -17,7 +17,8 @@ export default function Login() {
             dispatch(
                 setCredentials({ user: res.data.user, token: res.data.token }),
             );
-            navigate("/todos");
+            const role = res.data.user.role;
+            navigate(role === "admin" ? "/admin" : "/");
         } catch (err: any) {
             setError(err.response?.data?.message || "Invalid credentials");
         }
