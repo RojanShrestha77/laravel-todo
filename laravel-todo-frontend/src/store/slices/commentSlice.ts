@@ -3,16 +3,17 @@ import type { Comment } from '../../types';
 import api from '../../api/axios';
 
 interface CommentState {
-    comments: Record<number, Comment[]>;
+    comments: Record<number, Comment[]>;  //keted by post id
     loading: boolean;
 }
 
-const initialState: CommentState = { comments: {}, loading: false };
+const initialState: CommentState = {comments: {}, loading: false};
 
-export const fetchComments = createAsyncThunk('comments/fetch',
+export const fetchComments = createAsyncThunk('comments/fetch', 
     async (postId: number) => {
-        const res = await api.get(`/posts/${postId}/comments`);
-        return { postId, comments: res.data.data as Comment[] };
+        const res = await api.get('/posts/${postId}/comments');
+        return {postId, comments:res.data.data as Comment[]};
+
     }
 );
 
@@ -23,35 +24,36 @@ export const createComment = createAsyncThunk('comments/create',
     }
 );
 
-export const deleteComment = createAsyncThunk('comments/delete',
-    async ({ postId, commentId }: { postId: number; commentId: number }) => {
+export const deleteComment = createAsyncThunk('comments/delete', 
+    async ({postId, commentId}: {postId: number, commentId: number}) => {
         await api.delete(`/comments/${commentId}`);
-        return { postId, commentId };
+        return {postId, commentId};
     }
 );
 
-const commentSlice = createSlice({
+const commentSlice = createSlice ({
     name: 'comments',
     initialState,
     reducers: {},
     extraReducers: (builder) => {
         builder
-            .addCase(fetchComments.fulfilled, (state, action: PayloadAction<{ postId: number; comments: Comment[] }>) => {
-                state.comments[action.payload.postId] = action.payload.comments;
-            })
-            .addCase(createComment.fulfilled, (state, action: PayloadAction<{ postId: number; comment: Comment }>) => {
-                const { postId, comment } = action.payload;
-                if (!state.comments[postId]) state.comments[postId] = [];
-                state.comments[postId].unshift(comment);
-            })
-            .addCase(deleteComment.fulfilled, (state, action: PayloadAction<{ postId: number; commentId: number }>) => {
-                const { postId, commentId } = action.payload;
-                state.comments[postId] = state.comments[postId].filter(c => c.id !== commentId);
-            });
-    },
+        .addCase(fetchComments.fulfilled, (state, action) => {
+            state.comments[action.payload.postId] = action.payload.comments;
+        })
+        .addCase(createComment.fulfilled, (state, action) => {
+            const { postId, comment} = action.payload;
+            if (!state.comments[postId]) state.comments[postId] = [];
+            state.comments[postId].unshift(comment);
+        })
+        .addCase(deleteComment.fulfilled, (state, action) => {
+            const { postId, commentId} = action.payload;
+            state.comments[postId] = state.comments[postId].filter(c => c.id !== commentId);
+        });
+    }
 });
 
-export const selectComments = (postId: number) =>
-    (state: { comments: CommentState }) => state.comments.comments[postId] ?? [];
+export const selectComments = (postId: number) => 
+    (state: {comments: CommentState}) => state.comments.comments[postId] ?? [];
 
 export default commentSlice.reducer;
+    

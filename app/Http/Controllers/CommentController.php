@@ -19,7 +19,7 @@ class CommentController extends Controller
         $isAuthor = $request->user() && $request->user()->id === $post->user_id;
 
         if(!$isAuthor) {
-            $uery->where('is_private', false);
+            $query->where('is_private', false);
         }
 
         return CommentResource::collection($query->latest()->get());
@@ -29,7 +29,7 @@ class CommentController extends Controller
     // POST /api/posts/{post}/comments
     public function store(Request $request, $postId)
     {
-        $post = Post::findOrFaile($postId);
+        $post = Post::findOrFail($postId);
 
         $request->validate([
             'body'  =>'required|string|max:1000',
