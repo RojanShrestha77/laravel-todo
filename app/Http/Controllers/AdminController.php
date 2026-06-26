@@ -29,6 +29,7 @@ class AdminController extends Controller
         $posts = Post::with('user')->latest()->get()->map(fn($p) => [
             'id' => $p->id,
             'title' => $p->title,
+            'slug'  => $p->slug,
             'author' => $p->user->name,
             'created_at' => $p->created_at->toDateString(),
 

@@ -5,6 +5,7 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Posts from "./pages/Posts";
 import AdminDashboard from "./pages/admin/AdminDashboard";
+import PostDetail from "./pages/PostDetail";
 
 function App() {
     const token = useAppSelector(selectToken);
@@ -13,6 +14,7 @@ function App() {
     return (
         <Routes>
             <Route path="/" element={<Posts />} />
+            <Route path="/posts/:slug" element={<PostDetail/>}/>
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route
