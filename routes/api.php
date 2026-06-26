@@ -32,4 +32,10 @@ Route::middleware(['auth:sanctum', 'admin'])->prefix('admin')->group(function ()
     Route::delete('/posts/{id}',    [AdminController::class, 'deletePost']);
     Route::get('/comments',         [AdminController::class, 'comments']);
     Route::delete('/comments/{id}', [AdminController::class, 'deleteComment']);
+
+    Route::get('/profile', [UserController::class, 'profile']);
+    Route::put('/profile', [userController::class, 'update']);
+    Route::post('/profile/avatar', [UserController::class, 'uploadAvatar']);
 });
+
+
